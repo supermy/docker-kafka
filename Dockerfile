@@ -1,4 +1,4 @@
-FROM    supermy/jre:7
+FROM    supermy/docker-jre:7
 
 MAINTAINER supermy
 
