@@ -1,0 +1,81 @@
+#单节点，高可用，节点只能是奇数
+base:
+  build: .
+
+
+zookeeper:
+  image: jplock/zookeeper
+  ports: 
+    - "2181:2181"
+
+##消息队列，配置ip and port
+kafka1:
+  image: jamesmo/kafka:0.8
+  ports:
+    - "9092:9092"
+  links:
+    - zookeeper:zk
+  environment:
+    KAFKA_BROKER_ID: 1
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.59.103
+    KAFKA_ADVERTISED_PORT: 9092
+    #KAFKA_MESSAGE_MAX_BYTES: 2000000
+    KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+
+##消息队列，配置ip and port
+kafka2:
+  image: jamesmo/kafka:0.8
+  ports:
+    - "9093:9092"
+  links:
+    - zookeeper:zk
+  environment:
+    KAFKA_BROKER_ID: 2
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.59.103
+    KAFKA_ADVERTISED_PORT: 9093
+    #KAFKA_MESSAGE_MAX_BYTES: 2000000
+    KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+
+##消息队列，配置ip and port
+kafka3:
+  image: jamesmo/kafka:0.8
+  ports:
+    - "9094:9092"
+  links:
+    - zookeeper:zk
+  environment:
+    KAFKA_BROKER_ID: 3
+    KAFKA_ADVERTISED_HOST_NAME: 192.168.59.103
+    KAFKA_ADVERTISED_PORT: 9094
+    #KAFKA_MESSAGE_MAX_BYTES: 2000000
+    KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+
+#注意端口
+#启动fig start/fig stop
+#fig scale kafka1=2
+#kafka-topics.sh --create --zookeeper 192.168.59.103:2181 --replication-factor 1 --partitions 1 --topic test
+#kafka-topics.sh --describe --topic test --zookeeper 192.168.59.103:2181
+#kafka-topics.sh --list --zookeeper 192.168.59.103:2181
+#kafka-console-producer.sh --broker-list 192.168.59.103:9092,192.168.59.103:9093,192.168.59.103:9094 --topic test
+#kafka-console-consumer.sh --zookeeper 192.168.59.103:2181 --topic test --from-beginning
+
+
+#采集数据，传输给kafka
+flume1:
+  image: jamesmo/myflume:latest
+  environment:
+    FLUME_AGENT_NAME: producer
+    FLUME_CONF_DIR: /opt/flume/conf
+    FLUME_CONF_FILE: /var/tmp/flume.conf.mykafka
+  ports:
+    - "44447:44444"
+  links:
+    - kafka1
+
+#建立通道
+#kafka-topics.sh --create --zookeeper 192.168.59.103:2181 --replication-factor 1 --partitions 1 --topic mykafka
+#生产数据
+#telnet 192.168.59.103 44447
+#消费数据
+#kafka-console-consumer.sh --zookeeper 192.168.59.103:2181 --topic mykafka --from-beginning
+#ok,数据到消费端显示出来
