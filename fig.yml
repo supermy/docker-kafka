@@ -1,7 +1,6 @@
 #单节点，高可用，节点只能是奇数
-base:
-  build: .
-
+#base:
+#  build: .
 
 zookeeper:
   image: jplock/zookeeper
@@ -71,6 +70,7 @@ flume1:
     - "44447:44444"
   links:
     - kafka1
+
 
 #建立通道
 #kafka-topics.sh --create --zookeeper 192.168.59.103:2181 --replication-factor 1 --partitions 1 --topic mykafka
